@@ -2,7 +2,7 @@ function sgn(x) {
   return x >= 0 ? 1 : -1;
 }
 
-export function generateWave16T(waveform) {
+export function generateWave2T(waveform) {
   const f = 2;          // FIX frequency (Hz)
   const A = 1;          // FIX amplitude
   const offset = 0;     // FIX offset

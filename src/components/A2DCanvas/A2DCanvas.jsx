@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef } from "react";
-import { generateWave16T } from "../../analog/generateSignal";
+import { generateWave2T } from "../../analog/generateSignal";
 
 export default function A2DCanvas({ analog }) {
   const canvasRef = useRef(null);
-  const sig = useMemo(() => generateWave16T((analog?.waveform) || "Sine"), [analog]);
+  const sig = useMemo(() => generateWave2T((analog?.waveform) || "Sine"), [analog]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

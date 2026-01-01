@@ -1,11 +1,11 @@
 import { useMemo } from "react";
-import { generateWave16T } from "../../analog/generateSignal";
+import { generateWave2T } from "../../analog/generateSignal";
 import { adc_pcm, adc_delta } from "../../adc/adc_original";
 import "./A2DOutput.css";
 
 export default function A2DOutput({ algorithm, analog }) {
   const { sig, out } = useMemo(() => {
-    const s = generateWave16T((analog?.waveform) || "Sine");
+    const s = generateWave2T((analog?.waveform) || "Sine");
     if (algorithm === "PCM") {
       return { sig: s, out: adc_pcm(s.samples, (analog || {}).pcmBits) };
     }
