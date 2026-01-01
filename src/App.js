@@ -1,25 +1,33 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
+import LeftPanel from "./components/LeftPanel/LeftPanel";
+import RightPanel from "./components/RightPanel/RightPanel";
+import "./App.css";
 
-function App() {
+export default function App() {
+  const [sel, setSel] = useState({
+  category: "",
+  algorithm: "",
+  data: "",
+  analog: {
+    f: 2,
+    amplitude: 1,
+    offset: 0,
+    fs: 200,      // sample rate
+    pcmBits: 4,   // PCM quantization bits
+    deltaStep: 0.2
+  }
+});
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="layout">
+      <div className="left">
+        <LeftPanel onChange={setSel} />
+      </div>
+
+      <div className="right">
+        <RightPanel selection={sel} />
+      </div>
+
     </div>
   );
 }
-
-export default App;

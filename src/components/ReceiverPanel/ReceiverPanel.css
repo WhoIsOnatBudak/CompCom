@@ -1,0 +1,69 @@
+.rxCard{
+  margin-top: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 16px;
+  background: #ffffff;
+}
+
+.rxTitle{
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.rxRow{
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.rxLbl{
+  font-size: 13px;
+  color: #64748b;
+}
+
+.rxVal{
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.rxMono{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 13px;
+  color: #0f172a;
+  overflow-wrap: anywhere;
+}
+
+.rxStatus{
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  border: 1px solid #e5e7eb;
+}
+
+.rxStatus.ok{
+  color: #14532d;
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.rxStatus.bad{
+  color: #7f1d1d;
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.rxNote{
+  margin-top: 10px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.rxMuted{
+  font-size: 13px;
+  color: #94a3b8;
+}
