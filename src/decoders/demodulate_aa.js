@@ -56,65 +56,72 @@ export function demodulate_aa(algorithm, y, fs) {
 
   if (!y || y.length === 0) return { mhat: [], note: "No signal" };
 
-if (algorithm === "AM") {
-  const mixed = new Array(y.length);
-  for (let n = 0; n < y.length; n++) {
-    const t = n / fs;
-    mixed[n] = y[n] * Math.cos(2 * Math.PI * fc * t);
+  if (algorithm === "AM") {
+    const mixed = new Array(y.length);
+    for (let n = 0; n < y.length; n++) {
+      const t = n / fs;
+      mixed[n] = y[n] * Math.cos(2 * Math.PI * fc * t);
+    }
+
+    // LPF: cutoff around message bandwidth.
+    // For square-ish message, keep more harmonics -> smaller window.
+    const win = Math.max(7, Math.floor(fs / 25)); // fs=200 => ~8
+    const base = movingAverage(mixed, win);
+
+    // FIX: DC Removal for Square Waves
+    // Theoretical LPF output is: 0.5 * (1 + ka * m(t))
+    // We can solve directly for m(t).
+
+    // 1. Multiply by 2 -> 1 + ka * m(t)
+    // 2. Subtract 1 -> ka * m(t)
+    // 3. Divide by ka -> m(t)
+
+    let mhat = base.map(v => (2 * v - 1) / ka);
+
+    // FIX: Remove startup transient (spike)
+    // The LPF needs 'win' samples to settle. The first 'win' samples are often garbage (ramp up).
+    // We clamp them to the first stable value.
+    for (let i = 0; i < win; i++) {
+      mhat[i] = mhat[win];
+    }
+
+    // Normalize just for display (keeps square shape better than mean-subtract)
+    let mx = 0;
+    for (const v of mhat) mx = Math.max(mx, Math.abs(v));
+    mx = mx || 1;
+    mhat = mhat.map(v => v / mx);
+
+    return { mhat, note: "AM demod: coherent mix + LPF + detrend + scale" };
   }
 
-  // LPF: cutoff around message bandwidth.
-  // For square-ish message, keep more harmonics -> smaller window.
-  const win = Math.max(7, Math.floor(fs / 25)); // fs=200 => ~8
-  const base = movingAverage(mixed, win);
+  if (algorithm === "PM") {
+    const { I, Q } = iqDemod(y, fs, fc);
 
-  // Remove DC using a much slower average (detrend)
-  const dc = movingAverage(base, Math.max(30, Math.floor(fs / 2))); // ~100 samples
-  let mhat = base.map((v, i) => v - dc[i]);
+    const ph = new Array(y.length);
+    for (let n = 0; n < y.length; n++) ph[n] = Math.atan2(Q[n], I[n]);
+    const pu = unwrapPhase(ph);
 
-  // Scale (since cos*cos => 0.5 factor)
-  mhat = mhat.map(v => (2 * v) / ka);
+    // phase difference removes slow drift
+    const dphi = new Array(y.length).fill(0);
+    for (let n = 1; n < y.length; n++) dphi[n] = pu[n] - pu[n - 1];
+    dphi[0] = dphi[1] || 0;
 
-  // Optional: light smoothing only
-  mhat = movingAverage(mhat, 5);
+    // integrate back (simple accumulator) to recover phase (up to constant)
+    const perr = new Array(y.length).fill(0);
+    for (let n = 1; n < y.length; n++) perr[n] = perr[n - 1] + dphi[n];
 
-  // Normalize just for display (keeps square shape better than mean-subtract)
-  let mx = 0;
-  for (const v of mhat) mx = Math.max(mx, Math.abs(v));
-  mx = mx || 1;
-  mhat = mhat.map(v => v / mx);
+    // scale to m(t)
+    let mhat = perr.map(v => v / kp);
 
-  return { mhat, note: "AM demod: coherent mix + LPF + detrend + scale" };
-}
+    // remove mean + LPF
+    let mean = 0;
+    for (const v of mhat) mean += v;
+    mean /= mhat.length;
+    mhat = mhat.map(v => v - mean);
 
-if (algorithm === "PM") {
-  const { I, Q } = iqDemod(y, fs, fc);
-
-  const ph = new Array(y.length);
-  for (let n = 0; n < y.length; n++) ph[n] = Math.atan2(Q[n], I[n]);
-  const pu = unwrapPhase(ph);
-
-  // phase difference removes slow drift
-  const dphi = new Array(y.length).fill(0);
-  for (let n = 1; n < y.length; n++) dphi[n] = pu[n] - pu[n - 1];
-  dphi[0] = dphi[1] || 0;
-
-  // integrate back (simple accumulator) to recover phase (up to constant)
-  const perr = new Array(y.length).fill(0);
-  for (let n = 1; n < y.length; n++) perr[n] = perr[n - 1] + dphi[n];
-
-  // scale to m(t)
-  let mhat = perr.map(v => v / kp);
-
-  // remove mean + LPF
-  let mean = 0;
-  for (const v of mhat) mean += v;
-  mean /= mhat.length;
-  mhat = mhat.map(v => v - mean);
-
-  const sm = movingAverage(mhat, Math.max(7, Math.floor(fs / (fc * 0.6))));
-  return { mhat: sm, note: "PM demod: phase -> diff -> integrate -> /kp + LPF" };
-}
+    const sm = movingAverage(mhat, Math.max(7, Math.floor(fs / (fc * 0.6))));
+    return { mhat: sm, note: "PM demod: phase -> diff -> integrate -> /kp + LPF" };
+  }
 
 
   if (algorithm === "FM") {
@@ -126,7 +133,7 @@ if (algorithm === "PM") {
 
     const instFreq = new Array(y.length).fill(0);
     for (let n = 1; n < y.length; n++) {
-        instFreq[n] = (pu[n] - pu[n - 1]) * fs / (2 * Math.PI);
+      instFreq[n] = (pu[n] - pu[n - 1]) * fs / (2 * Math.PI);
     }
     instFreq[0] = instFreq[1] || 0;
 
@@ -141,7 +148,7 @@ if (algorithm === "PM") {
 
     const sm = movingAverage(mhat, Math.max(7, Math.floor(fs / (fc * 0.6))));
     return { mhat: sm, note: "FM demod: phase diff -> instFreq -> (f-fc)/kf + LPF" };
-    }
+  }
 
 
   return { mhat: [], note: "Unsupported algorithm" };
