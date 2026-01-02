@@ -4,6 +4,9 @@ import ReceiverPanel from "../ReceiverPanel/ReceiverPanel";
 import A2DCanvas from "../A2DCanvas/A2DCanvas";
 import A2DOutput from "../A2DOutput/A2DOutput";
 import A2DReconCanvas from "../A2DReconCanvas/A2DReconCanvas";
+import A2ACanvas from "../A2ACanvas/A2ACanvas";
+import A2ADemodCanvas from "../A2ADemodCanvas/A2ADemodCanvas";
+
 
 
 
@@ -14,6 +17,7 @@ export default function RightPanel({ selection }) {
 
   const isD2A = category === "Digital → Analog";
   const isA2D = category === "Analog → Digital";
+  const isA2A = category === "Analog → Analog";
 
   return (
     <div className="rightPanel">
@@ -34,6 +38,12 @@ export default function RightPanel({ selection }) {
               <>
                 <AnalogModCanvas algorithm={algorithm} data={data} />
                 <ReceiverPanel category={category} algorithm={algorithm} data={data} />
+              </>
+            ) : isA2A ? (
+              <>
+                <A2DCanvas analog={selection.analog} />   {/* x(t) aynı analog çizim reuse */}
+                <A2ACanvas algorithm={algorithm} analog={selection.analog} /> {/* y(t) */}
+                <A2ADemodCanvas algorithm={algorithm} analog={selection.analog} />
               </>
             ) : (
               <>

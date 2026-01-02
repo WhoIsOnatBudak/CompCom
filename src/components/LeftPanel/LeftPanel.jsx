@@ -26,7 +26,9 @@ export default function LeftPanel({ onChange }) {
 }, [category, algorithm, data, analog, onChange]);
 
 
-  const isA2D = category === "Analog → Digital";
+
+  const isAnalogInput = category === "Analog → Digital" || category === "Analog → Analog";
+
 
   return (
     <div className="leftPanel">
@@ -59,7 +61,7 @@ export default function LeftPanel({ onChange }) {
       </FieldCard>
 
       <FieldCard>
-        {isA2D ? (
+        {isAnalogInput ? (
         <AnalogWaveformSelect value={analog} onChange={setAnalog} />
       ) : (
         <BitStringInput value={data} onChange={setData} />
