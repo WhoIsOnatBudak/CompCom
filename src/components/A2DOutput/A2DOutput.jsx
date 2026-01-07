@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { generateWave2T } from "../../analog/generateSignal";
-import { adc_pcm, adc_delta } from "../../adc/adc_original";
+import { adc_pcm, adc_delta } from "../../encoding/analog_to_digital_encoding";
 import "./A2DOutput.css";
 
 export default function A2DOutput({ algorithm, analog }) {

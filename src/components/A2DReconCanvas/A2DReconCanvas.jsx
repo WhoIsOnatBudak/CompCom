@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { generateWave2T } from "../../analog/generateSignal";
-import { adc_pcm, adc_delta } from "../../adc/adc_original";
-import { reconstruct_pcm_from_bits, reconstruct_delta_from_bits } from "../../dac/reconstruct";
+import { adc_pcm, adc_delta } from "../../encoding/analog_to_digital_encoding";
+import { reconstruct_pcm_from_bits, reconstruct_delta_from_bits } from "../../decoding/digital_to_analog_decoding";
 
 export default function A2DReconCanvas({ algorithm, analog }) {
   const canvasRef = useRef(null);

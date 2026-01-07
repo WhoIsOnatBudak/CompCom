@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { modulate_original } from "../../modulators/modulate_original";
+import { modulate_original } from "../../encoding/digital_to_analog_modulator";
 
 export default function AnalogModCanvas({ algorithm, data }) {
   const canvasRef = useRef(null);

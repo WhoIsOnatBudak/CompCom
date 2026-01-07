@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { modulate_aa } from "../../modulators/modulate_aa";
+import { modulate_aa } from "../../encoding/analog_to_analog_modulator";
 
 export default function A2ACanvas({ algorithm, analog }) {
   const canvasRef = useRef(null);

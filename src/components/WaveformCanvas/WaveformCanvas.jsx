@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { encode_original } from "../../encoders/encode_original";
+import { encode_original } from "../../encoding/digital_to_digital_encoder";
 
 function levelToY(level, yHigh, yZero, yLow) {
   if (level > 0) return yHigh;

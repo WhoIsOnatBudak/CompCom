@@ -1,4 +1,4 @@
-import { encode_original } from "../encoders/encode_original";
+import { encode_original } from "../encoding/digital_to_digital_encoder";
 
 function sanitizeBits(bits) {
   return (bits || "").replace(/[^01]/g, "").slice(0, 32);

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
-import { modulate_aa } from "../../modulators/modulate_aa";
-import { demodulate_aa } from "../../decoders/demodulate_aa";
+import { modulate_aa } from "../../encoding/analog_to_analog_modulator";
+import { demodulate_aa } from "../../decoding/analog_to_analog_demodulator";
 
 export default function A2ADemodCanvas({ algorithm, analog }) {
   const canvasRef = useRef(null);

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { decode_dd } from "../../decoders/decode_dd";
-import { demodulate_da } from "../../decoders/demodulate_da";
+import { decode_dd } from "../../decoding/digital_to_digital_decoder";
+import { demodulate_da } from "../../decoding/digital_to_analog_demodulator";
 import "./ReceiverPanel.css";
 
 export default function ReceiverPanel({ category, algorithm, data }) {

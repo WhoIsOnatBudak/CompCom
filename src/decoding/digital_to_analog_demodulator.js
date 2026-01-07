@@ -1,4 +1,4 @@
-import { modulate_original } from "../modulators/modulate_original";
+import { modulate_original } from "../encoding/digital_to_analog_modulator";
 
 function sanitizeBits(bits) {
   return (bits || "").replace(/[^01]/g, "").slice(0, 32);
