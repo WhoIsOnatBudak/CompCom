@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
-import { encode_original } from "../../encoding/digital_to_digital_encoder";
+import { getDigitalEncoder } from "../../utils/algorithm_registry";
+import { runBenchmark } from "../../utils/benchmark";
 
 function levelToY(level, yHigh, yZero, yLow) {
   if (level > 0) return yHigh;
@@ -7,12 +8,23 @@ function levelToY(level, yHigh, yZero, yLow) {
   return yZero;
 }
 
-export default function WaveformCanvas({ algorithm, data }) {
+export default function WaveformCanvas({ algorithm, data, implementation, onReportMetrics }) {
   const canvasRef = useRef(null);
 
-  const encoded = useMemo(() => {
-    return encode_original(algorithm, data);
-  }, [algorithm, data]);
+  const { encoded, metrics } = useMemo(() => {
+    const encoder = getDigitalEncoder(implementation);
+
+    // Benchmark: run 1000 times
+    const bench = runBenchmark(() => encoder(algorithm, data));
+    const res = encoder(algorithm, data);
+
+    return { encoded: res, metrics: bench };
+  }, [algorithm, data, implementation]);
+
+  // Report metrics side effect
+  useEffect(() => {
+    onReportMetrics?.(metrics);
+  }, [metrics, onReportMetrics]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -52,10 +64,10 @@ export default function WaveformCanvas({ algorithm, data }) {
     const N = bits.length;
     const bitW = N > 0 ? (width - padX * 2) / N : 0;
 
-    const grid = "#cbd5e7";
-    const text = "#0f172a";
-    const muted = "#64748b";
-    const wave = "#16a34a";
+    const grid = "#e2e8f0";      // --border-subtle
+    const text = "#1e293b";      // --text-main
+    const muted = "#64748b";     // --text-muted
+    const wave = "#4f46e5";      // --accent-primary (Indigo)
 
     // zero line (nice for AMI/pseudoternary)
     ctx.strokeStyle = grid;
@@ -134,8 +146,8 @@ export default function WaveformCanvas({ algorithm, data }) {
     ctx.fillStyle = text;
     ctx.textAlign = "left";
     ctx.font = "14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    ctx.fillText(algorithm, padX, 14);
-  }, [algorithm, encoded]);
+    ctx.fillText(`${algorithm} (${implementation})`, padX, 14);
+  }, [algorithm, encoded, implementation]);
 
   return <canvas ref={canvasRef} />;
 }

@@ -1,12 +1,22 @@
 import { useEffect, useMemo, useRef } from "react";
-import { modulate_original } from "../../encoding/digital_to_analog_modulator";
+import { getDigitalModulator } from "../../utils/algorithm_registry";
+import { runBenchmark } from "../../utils/benchmark";
 
-export default function AnalogModCanvas({ algorithm, data }) {
+export default function AnalogModCanvas({ algorithm, data, implementation, onReportMetrics }) {
   const canvasRef = useRef(null);
 
-  const mod = useMemo(() => {
-    return modulate_original(algorithm, data);
-  }, [algorithm, data]);
+  const { mod, metrics } = useMemo(() => {
+    const modulator = getDigitalModulator(implementation);
+
+    const bench = runBenchmark(() => modulator(algorithm, data), 1000);
+    const res = modulator(algorithm, data);
+
+    return { mod: res, metrics: bench };
+  }, [algorithm, data, implementation]);
+
+  useEffect(() => {
+    onReportMetrics?.(metrics);
+  }, [metrics, onReportMetrics]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -40,10 +50,10 @@ export default function AnalogModCanvas({ algorithm, data }) {
     const bits = mod.bits || "";
     const samples = mod.samples || [];
 
-    const grid = "#cbd5e7";
-    const text = "#0f172a";
-    const muted = "#64748b";
-    const wave = "#16a34a";
+    const grid = "#e2e8f0";      // --border-subtle
+    const text = "#1e293b";      // --text-main
+    const muted = "#64748b";     // --text-muted
+    const wave = "#10b981";      // Emerald for analog modulation
 
     ctx.strokeStyle = grid;
     ctx.lineWidth = 1;
@@ -95,8 +105,8 @@ export default function AnalogModCanvas({ algorithm, data }) {
     ctx.fillStyle = text;
     ctx.textAlign = "left";
     ctx.font = "14px system-ui, -apple-system, Segoe UI, Roboto, Arial";
-    ctx.fillText(algorithm, padX, 14);
-  }, [algorithm, mod]);
+    ctx.fillText(`${algorithm} [${implementation}]`, padX, 14);
+  }, [algorithm, mod, implementation]);
 
   return <canvas ref={canvasRef} />;
 }

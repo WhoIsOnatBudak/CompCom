@@ -21,7 +21,13 @@ export default function Dropdown({
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  const selectedLabel = value ? value : "";
+  // Handle both string options and {value, label} objects
+  const getOptValue = (opt) => (typeof opt === 'object' ? opt.value : opt);
+  const getOptLabel = (opt) => (typeof opt === 'object' ? opt.label : opt);
+
+  // Find selected label based on current value string
+  const selectedOption = options.find(opt => getOptValue(opt) === value);
+  const selectedLabel = selectedOption ? getOptLabel(selectedOption) : (value || "");
 
   return (
     <div className="row" ref={rootRef}>
@@ -41,19 +47,23 @@ export default function Dropdown({
 
         {open && !disabled && (
           <div className="ddMenu">
-            {options.map((opt) => (
-              <button
-                type="button"
-                key={opt}
-                className={"ddItem " + (opt === value ? "active" : "")}
-                onClick={() => {
-                  onChange(opt);
-                  setOpen(false);
-                }}
-              >
-                {opt}
-              </button>
-            ))}
+            {options.map((opt) => {
+              const val = getOptValue(opt);
+              const lbl = getOptLabel(opt);
+              return (
+                <button
+                  type="button"
+                  key={val}
+                  className={"ddItem " + (val === value ? "active" : "")}
+                  onClick={() => {
+                    onChange(val);
+                    setOpen(false);
+                  }}
+                >
+                  {lbl}
+                </button>
+              );
+            })}
             {options.length === 0 && (
               <div className="ddEmpty">No options</div>
             )}

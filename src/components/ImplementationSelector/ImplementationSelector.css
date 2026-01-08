@@ -1,0 +1,8 @@
+.implSelector {
+    margin-bottom: 20px;
+    background: var(--bg-card);
+    padding: 12px;
+    border-radius: 16px;
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-sm);
+}

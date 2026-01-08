@@ -1,29 +1,53 @@
 import { useEffect, useMemo, useRef } from "react";
 import { generateWave2T } from "../../analog/generateSignal";
-import { adc_pcm, adc_delta } from "../../encoding/analog_to_digital_encoding";
-import { reconstruct_pcm_from_bits, reconstruct_delta_from_bits } from "../../decoding/digital_to_analog_decoding";
+import { getADC, getADCRecon } from "../../utils/algorithm_registry";
+import { runBenchmark } from "../../utils/benchmark";
 
-export default function A2DReconCanvas({ algorithm, analog }) {
+export default function A2DReconCanvas({ algorithm, analog, implementation, onReportMetrics }) {
   const canvasRef = useRef(null);
 
-  const { sig, y, meta } = useMemo(() => {
+  const { sig, y, meta, metrics } = useMemo(() => {
     const s = generateWave2T((analog?.waveform) || "Sine");
+    const adcFuncs = getADC(implementation);
+    const reconFuncs = getADCRecon(implementation);
+
+    let bench = null;
+    let yrec = [];
+    let note = "Choose PCM or Delta";
 
     if (algorithm === "PCM") {
-      const pcm = adc_pcm(s.samples, 4); // pcmBits fixed (we locked params)
-      const yrec = reconstruct_pcm_from_bits(pcm.bits, 4, pcm.min, pcm.max, s.samples.length);
-      return { sig: s, y: yrec, meta: { note: "PCM reconstruction (ZOH samples)" } };
+      const pcmBits = 4;
+      bench = runBenchmark(() => {
+        const pcm = adcFuncs.pcm(s.samples, pcmBits);
+        reconFuncs.pcm(pcm.bits, pcmBits, pcm.min, pcm.max, s.samples.length);
+      });
+
+      const pcm = adcFuncs.pcm(s.samples, pcmBits);
+      yrec = reconFuncs.pcm(pcm.bits, pcmBits, pcm.min, pcm.max, s.samples.length);
+      note = "PCM reconstruction (ZOH)";
+    } else if (algorithm === "Delta") {
+      const step = 0.2;
+      bench = runBenchmark(() => {
+        const dm = adcFuncs.delta(s.samples, step);
+        reconFuncs.delta(dm.bits, step);
+      });
+
+      const dm = adcFuncs.delta(s.samples, step);
+      yrec = reconFuncs.delta(dm.bits, step);
+      note = "Delta reconstruction";
     }
 
-    if (algorithm === "Delta") {
-      const step = 0.2; // deltaStep fixed (we locked params)
-      const dm = adc_delta(s.samples, step);
-      const yrec = reconstruct_delta_from_bits(dm.bits, step);
-      return { sig: s, y: yrec, meta: { note: "Delta reconstruction (accumulator)" } };
-    }
+    return {
+      sig: s,
+      y: yrec,
+      meta: { note },
+      metrics: bench
+    };
+  }, [algorithm, analog, implementation]);
 
-    return { sig: s, y: [], meta: { note: "Choose PCM or Delta" } };
-  }, [algorithm, analog]);
+  useEffect(() => {
+    onReportMetrics?.(metrics);
+  }, [metrics, onReportMetrics]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

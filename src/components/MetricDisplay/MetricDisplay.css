@@ -1,0 +1,53 @@
+.metricCard {
+    margin-top: 24px;
+    /* Previously auto (bottom align), now fixed spacing */
+    background: var(--bg-card);
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-sm);
+}
+
+.metricTitle {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 6px;
+}
+
+.metricRow {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.mLbl {
+    color: var(--text-muted);
+}
+
+.mVal {
+    color: var(--accent-primary);
+    font-family: monospace;
+    font-weight: 600;
+}
+
+.mVal.bad {
+    color: #ef4444;
+    /* red-500 */
+}
+
+.mVal.good {
+    color: #10b981;
+    /* emerald-500 */
+}
+
+.metricNote {
+    margin-top: 10px;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-style: italic;
+}

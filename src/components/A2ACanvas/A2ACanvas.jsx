@@ -1,12 +1,22 @@
 import { useEffect, useMemo, useRef } from "react";
-import { modulate_aa } from "../../encoding/analog_to_analog_modulator";
+import { getAnalogModulator } from "../../utils/algorithm_registry";
+import { runBenchmark } from "../../utils/benchmark";
 
-export default function A2ACanvas({ algorithm, analog }) {
+export default function A2ACanvas({ algorithm, analog, implementation, onReportMetrics }) {
   const canvasRef = useRef(null);
 
-  const res = useMemo(() => {
-    return modulate_aa(algorithm, analog?.waveform || "Sine");
-  }, [algorithm, analog]);
+  const { res, metrics } = useMemo(() => {
+    const modulator = getAnalogModulator(implementation);
+
+    const bench = runBenchmark(() => modulator(algorithm, analog?.waveform || "Sine"));
+    const r = modulator(algorithm, analog?.waveform || "Sine");
+
+    return { res: r, metrics: bench };
+  }, [algorithm, analog, implementation]);
+
+  useEffect(() => {
+    onReportMetrics?.(metrics);
+  }, [metrics, onReportMetrics]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

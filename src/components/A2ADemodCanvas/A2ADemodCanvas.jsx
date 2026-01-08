@@ -1,15 +1,31 @@
 import { useEffect, useMemo, useRef } from "react";
-import { modulate_aa } from "../../encoding/analog_to_analog_modulator";
-import { demodulate_aa } from "../../decoding/analog_to_analog_demodulator";
+import { getAnalogModulator, getAnalogDemodulator } from "../../utils/algorithm_registry";
+import { runBenchmark } from "../../utils/benchmark";
 
-export default function A2ADemodCanvas({ algorithm, analog }) {
+export default function A2ADemodCanvas({ algorithm, analog, implementation, onReportMetrics }) {
   const canvasRef = useRef(null);
 
-  const res = useMemo(() => {
-    const r = modulate_aa(algorithm, analog?.waveform || "Sine");
-    const d = demodulate_aa(algorithm, r.y, r.fs);
-    return { ...r, ...d };
-  }, [algorithm, analog]);
+  const { res, metrics } = useMemo(() => {
+    const modulator = getAnalogModulator(implementation);
+    const demodulator = getAnalogDemodulator(implementation);
+
+    const bench = runBenchmark(() => {
+      const r = modulator(algorithm, analog?.waveform || "Sine");
+      demodulator(algorithm, r.y, r.fs);
+    });
+
+    const r = modulator(algorithm, analog?.waveform || "Sine");
+    const d = demodulator(algorithm, r.y, r.fs);
+
+    return {
+      res: { ...r, ...d },
+      metrics: bench
+    };
+  }, [algorithm, analog, implementation]);
+
+  useEffect(() => {
+    onReportMetrics?.(metrics);
+  }, [metrics, onReportMetrics]);
 
   useEffect(() => {
     const canvas = canvasRef.current;

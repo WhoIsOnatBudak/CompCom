@@ -1,19 +1,37 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { generateWave2T } from "../../analog/generateSignal";
-import { adc_pcm, adc_delta } from "../../encoding/analog_to_digital_encoding";
+import { getADC } from "../../utils/algorithm_registry";
+import { runBenchmark } from "../../utils/benchmark";
 import "./A2DOutput.css";
 
-export default function A2DOutput({ algorithm, analog }) {
-  const { sig, out } = useMemo(() => {
+export default function A2DOutput({ algorithm, analog, implementation, onReportMetrics }) {
+  const { sig, out, metrics } = useMemo(() => {
     const s = generateWave2T((analog?.waveform) || "Sine");
+    const adcFuncs = getADC(implementation); // returns { pcm: fn, delta: fn }
+
+    let bench = null;
+    let res = null;
+
     if (algorithm === "PCM") {
-      return { sig: s, out: adc_pcm(s.samples, (analog || {}).pcmBits) };
+      const pcmBits = (analog || {}).pcmBits;
+      bench = runBenchmark(() => adcFuncs.pcm(s.samples, pcmBits));
+      res = adcFuncs.pcm(s.samples, pcmBits);
+    } else if (algorithm === "Delta") {
+      const step = (analog || {}).deltaStep;
+      bench = runBenchmark(() => adcFuncs.delta(s.samples, step));
+      res = adcFuncs.delta(s.samples, step);
     }
-    if (algorithm === "Delta") {
-      return { sig: s, out: adc_delta(s.samples, (analog || {}).deltaStep) };
-    }
-    return { sig: s, out: null };
-  }, [algorithm, analog]);
+
+    return {
+      sig: s,
+      out: res,
+      metrics: bench
+    };
+  }, [algorithm, analog, implementation]);
+
+  useEffect(() => {
+    onReportMetrics?.(metrics);
+  }, [metrics, onReportMetrics]);
 
   if (!algorithm) return <div className="a2dCard">Algorithm seç.</div>;
   if (!out) return <div className="a2dCard">Bu algorithm için output yok.</div>;

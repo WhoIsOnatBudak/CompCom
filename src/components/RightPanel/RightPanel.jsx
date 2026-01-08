@@ -12,12 +12,15 @@ import A2ADemodCanvas from "../A2ADemodCanvas/A2ADemodCanvas";
 
 import "./RightPanel.css";
 
-export default function RightPanel({ selection }) {
+export default function RightPanel({ selection, implementation, onReportMetrics }) {
   const { category, algorithm, data } = selection;
 
   const isD2A = category === "Digital → Analog";
   const isA2D = category === "Analog → Digital";
   const isA2A = category === "Analog → Analog";
+
+  // Helper to standard props
+  const common = { implementation, onReportMetrics };
 
   return (
     <div className="rightPanel">
@@ -28,29 +31,29 @@ export default function RightPanel({ selection }) {
       </div>
 
       <div className="rightBody">
-            {isA2D ? (
-              <>
-                <A2DCanvas analog={selection.analog} />
-                <A2DOutput algorithm={algorithm} analog={selection.analog} />
-                <A2DReconCanvas algorithm={algorithm} analog={selection.analog} />
-              </>
-            ) : isD2A ? (
-              <>
-                <AnalogModCanvas algorithm={algorithm} data={data} />
-                <ReceiverPanel category={category} algorithm={algorithm} data={data} />
-              </>
-            ) : isA2A ? (
-              <>
-                <A2DCanvas analog={selection.analog} />   {/* x(t) aynı analog çizim reuse */}
-                <A2ACanvas algorithm={algorithm} analog={selection.analog} /> {/* y(t) */}
-                <A2ADemodCanvas algorithm={algorithm} analog={selection.analog} />
-              </>
-            ) : (
-              <>
-                <WaveformCanvas algorithm={algorithm} data={data} />
-                <ReceiverPanel category={category} algorithm={algorithm} data={data} />
-              </>
-            )}
+        {isA2D ? (
+          <>
+            <A2DCanvas analog={selection.analog} />
+            <A2DOutput algorithm={algorithm} analog={selection.analog} {...common} />
+            <A2DReconCanvas algorithm={algorithm} analog={selection.analog} {...common} />
+          </>
+        ) : isD2A ? (
+          <>
+            <AnalogModCanvas algorithm={algorithm} data={data} {...common} />
+            <ReceiverPanel category={category} algorithm={algorithm} data={data} {...common} />
+          </>
+        ) : isA2A ? (
+          <>
+            <A2DCanvas analog={selection.analog} />   {/* x(t) */}
+            <A2ACanvas algorithm={algorithm} analog={selection.analog} {...common} /> {/* y(t) */}
+            <A2ADemodCanvas algorithm={algorithm} analog={selection.analog} {...common} />
+          </>
+        ) : (
+          <>
+            <WaveformCanvas algorithm={algorithm} data={data} {...common} />
+            <ReceiverPanel category={category} algorithm={algorithm} data={data} {...common} />
+          </>
+        )}
       </div>
     </div>
   );

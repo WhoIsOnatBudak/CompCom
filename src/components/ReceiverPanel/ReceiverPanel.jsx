@@ -1,18 +1,34 @@
-import { useMemo } from "react";
-import { decode_dd } from "../../decoding/digital_to_digital_decoder";
-import { demodulate_da } from "../../decoding/digital_to_analog_demodulator";
+import { useMemo, useEffect } from "react";
+import { getDigitalDecoder, getDigitalDemodulator } from "../../utils/algorithm_registry";
+import { runBenchmark } from "../../utils/benchmark";
 import "./ReceiverPanel.css";
 
-export default function ReceiverPanel({ category, algorithm, data }) {
+export default function ReceiverPanel({ category, algorithm, data, implementation, onReportMetrics }) {
   const isD2D = category === "Digital → Digital";
   const isD2A = category === "Digital → Analog";
 
-  const result = useMemo(() => {
-    if (!algorithm || !data) return null;
-    if (isD2D) return decode_dd(algorithm, data);
-    if (isD2A) return demodulate_da(algorithm, data);
-    return null;
-  }, [isD2D, isD2A, algorithm, data]);
+  const { result, metrics } = useMemo(() => {
+    if (!algorithm || !data) return { result: null, metrics: null };
+
+    let bench = null;
+    let res = null;
+
+    if (isD2D) {
+      const decoder = getDigitalDecoder(implementation);
+      bench = runBenchmark(() => decoder(algorithm, data));
+      res = decoder(algorithm, data);
+    } else if (isD2A) {
+      const demodulator = getDigitalDemodulator(implementation);
+      bench = runBenchmark(() => demodulator(algorithm, data));
+      res = demodulator(algorithm, data);
+    }
+
+    return { result: res, metrics: bench };
+  }, [isD2D, isD2A, algorithm, data, implementation]);
+
+  useEffect(() => {
+    if (metrics) onReportMetrics?.(metrics);
+  }, [metrics, onReportMetrics]);
 
   if (!isD2D && !isD2A) {
     return (
