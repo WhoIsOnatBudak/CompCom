@@ -3,7 +3,7 @@ function sgn(x) {
 }
 
 export function generateWave2T(waveform) {
-  const f = 2;          // FIX frequency (Hz)
+  const f = 2;          // FIX frequency (Hz))
   const A = 1;          // FIX amplitude
   const offset = 0;     // FIX offset
   const fs = 200;       // FIX sample rate (Hz)
